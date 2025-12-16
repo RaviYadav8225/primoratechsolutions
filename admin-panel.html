@@ -17,11 +17,15 @@
                 <h3>Admin Panel</h3>
             </div>
             <nav class="admin-nav">
-                <a href="#" class="admin-nav-item active">
+                <a href="#qr-section" class="admin-nav-item" onclick="showSection('qr-section')">
                     <i class="fas fa-qrcode"></i>
                     Payment QR Code
                 </a>
-                <a href="#" class="admin-nav-item">
+                <a href="#submissions-section" class="admin-nav-item active" onclick="showSection('submissions-section')">
+                    <i class="fas fa-users"></i>
+                    Form Submissions
+                </a>
+                <a href="#bank-section" class="admin-nav-item" onclick="showSection('bank-section')">
                     <i class="fas fa-university"></i>
                     Bank Details
                 </a>
@@ -43,7 +47,7 @@
         <!-- Admin Main Content -->
         <main class="admin-main">
             <header class="admin-header">
-                <h1>Payment QR Code Management</h1>
+                <h1 id="pageTitle">Form Submissions</h1>
                 <div class="admin-user">
                     <i class="fas fa-user-circle"></i>
                     <span>Admin</span>
@@ -51,6 +55,59 @@
             </header>
 
             <div class="admin-content">
+                <!-- Form Submissions Section -->
+                <div class="admin-section" id="submissions-section">
+                    <div class="admin-card">
+                        <div class="card-header">
+                            <h2>Expert Consultation Requests</h2>
+                            <button class="btn-download" id="downloadCSV">
+                                <i class="fas fa-download"></i>
+                                Download CSV
+                            </button>
+                        </div>
+                        
+                        <div class="submissions-stats">
+                            <div class="stat-box">
+                                <i class="fas fa-envelope"></i>
+                                <div>
+                                    <h3 id="totalSubmissions">0</h3>
+                                    <p>Total Submissions</p>
+                                </div>
+                            </div>
+                            <div class="stat-box">
+                                <i class="fas fa-clock"></i>
+                                <div>
+                                    <h3 id="todaySubmissions">0</h3>
+                                    <p>Today's Submissions</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="submissions-table-container">
+                            <table class="submissions-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Contact</th>
+                                        <th>Country</th>
+                                        <th>Date & Time</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="submissionsTableBody">
+                                    <tr class="no-data">
+                                        <td colspan="7">No submissions yet</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- QR Code Section -->
+                <div class="admin-section" id="qr-section" style="display: none;">
                 <div class="admin-card">
                     <div class="card-header">
                         <h2>Upload Payment QR Code</h2>
@@ -129,6 +186,18 @@
                         </div>
                     </div>
                 </div>
+                </div>
+                <!-- End QR Section -->
+
+                <!-- Bank Details Section -->
+                <div class="admin-section" id="bank-section" style="display: none;">
+                <div class="admin-card">
+                    <div class="card-header">
+                        <h2>Bank Details Management</h2>
+                    </div>
+                    <p>Bank details section - Coming soon</p>
+                </div>
+                </div>
             </div>
         </main>
     </div>
@@ -146,6 +215,127 @@
             window.location.href = 'admin-login.html';
         });
 
+        // Section Navigation
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.admin-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Remove active class from all nav items
+            document.querySelectorAll('.admin-nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionId).style.display = 'block';
+            
+            // Add active class to clicked nav item
+            event.target.closest('.admin-nav-item').classList.add('active');
+            
+            // Update page title
+            const titles = {
+                'submissions-section': 'Form Submissions',
+                'qr-section': 'Payment QR Code Management',
+                'bank-section': 'Bank Details Management'
+            };
+            document.getElementById('pageTitle').textContent = titles[sectionId] || 'Admin Panel';
+        }
+
+        // Form Submissions Management
+        function loadSubmissions() {
+            const submissions = JSON.parse(localStorage.getItem('formSubmissions') || '[]');
+            const tbody = document.getElementById('submissionsTableBody');
+            
+            // Update stats
+            document.getElementById('totalSubmissions').textContent = submissions.length;
+            
+            // Count today's submissions
+            const today = new Date().toDateString();
+            const todayCount = submissions.filter(sub => {
+                const subDate = new Date(sub.timestamp).toDateString();
+                return subDate === today;
+            }).length;
+            document.getElementById('todaySubmissions').textContent = todayCount;
+            
+            // Clear table
+            tbody.innerHTML = '';
+            
+            if (submissions.length === 0) {
+                tbody.innerHTML = '<tr class="no-data"><td colspan="7">No submissions yet</td></tr>';
+                return;
+            }
+            
+            // Populate table (reverse order - newest first)
+            submissions.reverse().forEach((sub, index) => {
+                const row = document.createElement('tr');
+                const date = new Date(sub.timestamp);
+                const formattedDate = date.toLocaleString('en-IN', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                row.innerHTML = `
+                    <td>${submissions.length - index}</td>
+                    <td>${sub.name}</td>
+                    <td>${sub.email}</td>
+                    <td>${sub.contact}</td>
+                    <td>${sub.country}</td>
+                    <td>${formattedDate}</td>
+                    <td>
+                        <button class="btn-delete-small" onclick="deleteSubmission(${submissions.length - index - 1})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Delete single submission
+        function deleteSubmission(index) {
+            if (confirm('Are you sure you want to delete this submission?')) {
+                const submissions = JSON.parse(localStorage.getItem('formSubmissions') || '[]');
+                submissions.splice(index, 1);
+                localStorage.setItem('formSubmissions', JSON.stringify(submissions));
+                loadSubmissions();
+            }
+        }
+
+        // Download CSV
+        document.getElementById('downloadCSV').addEventListener('click', function() {
+            const submissions = JSON.parse(localStorage.getItem('formSubmissions') || '[]');
+            
+            if (submissions.length === 0) {
+                alert('No submissions to download');
+                return;
+            }
+            
+            // Create CSV content
+            let csv = 'Sr. No.,Name,Email,Contact,Country,Date & Time\n';
+            
+            submissions.forEach((sub, index) => {
+                const date = new Date(sub.timestamp);
+                const formattedDate = date.toLocaleString('en-IN');
+                csv += `${index + 1},"${sub.name}","${sub.email}","${sub.contact}","${sub.country}","${formattedDate}"\n`;
+            });
+            
+            // Create download link
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `form-submissions-${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        });
+
+        // QR Code Management
         const uploadArea = document.getElementById('uploadArea');
         const qrFileInput = document.getElementById('qrFileInput');
         const qrPreview = document.getElementById('qrPreview');
@@ -199,18 +389,12 @@
 
         // Save QR Code
         saveQRBtn.addEventListener('click', function() {
-            // Store the image in localStorage
             localStorage.setItem('paymentQR', previewImage.src);
-            
-            // Update current QR display
             document.getElementById('currentQR').src = previewImage.src;
             document.getElementById('currentQR').style.display = 'block';
             document.querySelector('.no-qr-message').style.display = 'none';
             document.getElementById('qrActions').style.display = 'block';
-            
-            alert('QR Code saved successfully! It will now appear on the payment page.');
-            
-            // Reset upload area
+            alert('QR Code saved successfully!');
             cancelUpload();
         });
 
@@ -233,12 +417,14 @@
                 document.querySelector('.no-qr-message').style.display = 'none';
                 document.getElementById('qrActions').style.display = 'block';
             }
+            
+            // Load submissions on page load
+            loadSubmissions();
         });
 
         // Delete QR Code
         document.getElementById('deleteQRBtn').addEventListener('click', function() {
-            if (confirm('Are you sure you want to delete the current QR code? This action cannot be undone.')) {
-                // Remove from localStorage
+            if (confirm('Are you sure you want to delete the current QR code?')) {
                 localStorage.removeItem('paymentQR');
                 
                 // Hide current QR and show no-qr message

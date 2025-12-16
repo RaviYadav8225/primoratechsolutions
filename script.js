@@ -272,6 +272,21 @@ document.addEventListener('DOMContentLoaded', function() {
         if (expertForm) {
             expertForm.addEventListener('submit', function(e) {
                 e.preventDefault();
+                
+                // Get form data
+                const formData = {
+                    name: expertForm.name.value,
+                    email: expertForm.email.value,
+                    contact: expertForm.contact.value,
+                    country: expertForm.country.value,
+                    timestamp: new Date().toISOString()
+                };
+                
+                // Save to localStorage
+                let submissions = JSON.parse(localStorage.getItem('formSubmissions') || '[]');
+                submissions.push(formData);
+                localStorage.setItem('formSubmissions', JSON.stringify(submissions));
+                
                 alert('Thank you! Our expert will contact you soon.');
                 modal.classList.remove('show');
                 expertForm.reset();
