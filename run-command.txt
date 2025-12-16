@@ -1,0 +1,1 @@
+cd /workspaces/primoratechsolutions && python3 -m http.server 8000

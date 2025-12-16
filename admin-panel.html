@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Primoratech Solution</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="admin-dashboard">
+        <!-- Admin Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="admin-brand">
+                <img src="logo.png" alt="Primora Tech Solution">
+                <h3>Admin Panel</h3>
+            </div>
+            <nav class="admin-nav">
+                <a href="#" class="admin-nav-item active">
+                    <i class="fas fa-qrcode"></i>
+                    Payment QR Code
+                </a>
+                <a href="#" class="admin-nav-item">
+                    <i class="fas fa-university"></i>
+                    Bank Details
+                </a>
+                <a href="#" class="admin-nav-item">
+                    <i class="fas fa-cog"></i>
+                    Settings
+                </a>
+                <a href="index.html" class="admin-nav-item">
+                    <i class="fas fa-globe"></i>
+                    View Website
+                </a>
+                <a href="#" class="admin-nav-item logout" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Admin Main Content -->
+        <main class="admin-main">
+            <header class="admin-header">
+                <h1>Payment QR Code Management</h1>
+                <div class="admin-user">
+                    <i class="fas fa-user-circle"></i>
+                    <span>Admin</span>
+                </div>
+            </header>
+
+            <div class="admin-content">
+                <div class="admin-card">
+                    <div class="card-header">
+                        <h2>Upload Payment QR Code</h2>
+                        <p>Upload a QR code image that will be displayed on the payment page</p>
+                    </div>
+                    
+                    <div class="qr-upload-section">
+                        <div class="upload-area" id="uploadArea">
+                            <div class="upload-icon">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <h3>Drag & Drop QR Code Here</h3>
+                            <p>or click to browse</p>
+                            <input type="file" id="qrFileInput" accept="image/*" hidden>
+                            <button type="button" class="browse-btn" onclick="document.getElementById('qrFileInput').click()">
+                                Browse Files
+                            </button>
+                        </div>
+
+                        <div class="qr-preview" id="qrPreview" style="display: none;">
+                            <h3>QR Code Preview</h3>
+                            <div class="preview-image-container">
+                                <img id="previewImage" src="" alt="QR Code Preview">
+                            </div>
+                            <div class="preview-actions">
+                                <button type="button" class="btn-save" id="saveQRBtn">
+                                    <i class="fas fa-save"></i>
+                                    Save QR Code
+                                </button>
+                                <button type="button" class="btn-cancel" id="cancelBtn">
+                                    <i class="fas fa-times"></i>
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="current-qr-section">
+                        <h3>Current Payment QR Code</h3>
+                        <div class="current-qr-display">
+                            <img id="currentQR" src="payment-qr.png" alt="Current QR Code" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                            <div class="no-qr-message" style="display: none;">
+                                <i class="fas fa-image"></i>
+                                <p>No QR code uploaded yet</p>
+                            </div>
+                        </div>
+                        <div class="qr-actions" id="qrActions" style="display: none;">
+                            <button type="button" class="btn-delete" id="deleteQRBtn">
+                                <i class="fas fa-trash-alt"></i>
+                                Delete QR Code
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-card">
+                    <div class="card-header">
+                        <h2>Instructions</h2>
+                    </div>
+                    <div class="instructions-list">
+                        <div class="instruction-item">
+                            <i class="fas fa-check-circle"></i>
+                            <p>Upload a clear QR code image in PNG, JPG, or JPEG format</p>
+                        </div>
+                        <div class="instruction-item">
+                            <i class="fas fa-check-circle"></i>
+                            <p>Recommended size: 500x500 pixels for best quality</p>
+                        </div>
+                        <div class="instruction-item">
+                            <i class="fas fa-check-circle"></i>
+                            <p>The QR code will be displayed on the payment page for customers to scan</p>
+                        </div>
+                        <div class="instruction-item">
+                            <i class="fas fa-check-circle"></i>
+                            <p>Make sure the QR code is scannable before uploading</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Check if admin is logged in
+        if (sessionStorage.getItem('adminLoggedIn') !== 'true') {
+            window.location.href = 'admin-login.html';
+        }
+
+        // Logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            sessionStorage.removeItem('adminLoggedIn');
+            window.location.href = 'admin-login.html';
+        });
+
+        const uploadArea = document.getElementById('uploadArea');
+        const qrFileInput = document.getElementById('qrFileInput');
+        const qrPreview = document.getElementById('qrPreview');
+        const previewImage = document.getElementById('previewImage');
+        const saveQRBtn = document.getElementById('saveQRBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+
+        // Drag and drop functionality
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#ED143D';
+            uploadArea.style.backgroundColor = '#fff5f7';
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.borderColor = '#ddd';
+            uploadArea.style.backgroundColor = '#f8f9fa';
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#ddd';
+            uploadArea.style.backgroundColor = '#f8f9fa';
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileSelect(files[0]);
+            }
+        });
+
+        // File input change
+        qrFileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                handleFileSelect(this.files[0]);
+            }
+        });
+
+        function handleFileSelect(file) {
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    uploadArea.style.display = 'none';
+                    qrPreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                alert('Please select a valid image file');
+            }
+        }
+
+        // Save QR Code
+        saveQRBtn.addEventListener('click', function() {
+            // Store the image in localStorage
+            localStorage.setItem('paymentQR', previewImage.src);
+            
+            // Update current QR display
+            document.getElementById('currentQR').src = previewImage.src;
+            document.getElementById('currentQR').style.display = 'block';
+            document.querySelector('.no-qr-message').style.display = 'none';
+            document.getElementById('qrActions').style.display = 'block';
+            
+            alert('QR Code saved successfully! It will now appear on the payment page.');
+            
+            // Reset upload area
+            cancelUpload();
+        });
+
+        // Cancel upload
+        cancelBtn.addEventListener('click', cancelUpload);
+
+        function cancelUpload() {
+            qrPreview.style.display = 'none';
+            uploadArea.style.display = 'flex';
+            qrFileInput.value = '';
+            previewImage.src = '';
+        }
+
+        // Load saved QR code on page load
+        window.addEventListener('load', function() {
+            const savedQR = localStorage.getItem('paymentQR');
+            if (savedQR) {
+                document.getElementById('currentQR').src = savedQR;
+                document.getElementById('currentQR').style.display = 'block';
+                document.querySelector('.no-qr-message').style.display = 'none';
+                document.getElementById('qrActions').style.display = 'block';
+            }
+        });
+
+        // Delete QR Code
+        document.getElementById('deleteQRBtn').addEventListener('click', function() {
+            if (confirm('Are you sure you want to delete the current QR code? This action cannot be undone.')) {
+                // Remove from localStorage
+                localStorage.removeItem('paymentQR');
+                
+                // Hide current QR and show no-qr message
+                document.getElementById('currentQR').style.display = 'none';
+                document.querySelector('.no-qr-message').style.display = 'block';
+                document.getElementById('qrActions').style.display = 'none';
+                
+                alert('QR Code deleted successfully!');
+            }
+        });
+    </script>
+</body>
+</html>
