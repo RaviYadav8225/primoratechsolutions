@@ -249,10 +249,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const expertForm = document.getElementById('expertForm');
     
     if (modal) {
-        // Show modal after 1 second
-        setTimeout(function() {
-            modal.classList.add('show');
-        }, 1000);
+        // Only show modal on homepage and only once
+        const isHomePage = window.location.pathname === '/' || window.location.pathname === '/index.html' || window.location.pathname.endsWith('/');
+        const hasSeenModal = localStorage.getItem('hasSeenExpertModal');
+        
+        if (isHomePage && !hasSeenModal) {
+            // Show modal after 1 second
+            setTimeout(function() {
+                modal.classList.add('show');
+                localStorage.setItem('hasSeenExpertModal', 'true');
+            }, 1000);
+        }
         
         // Close modal when clicking X button
         if (modalClose) {
